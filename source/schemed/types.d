@@ -58,12 +58,12 @@ Symbol toSymbol(Atom atom)
     }
 
     return atom.visit!(
-                       (Symbol sym) => sym,
-                       (string s) => failure(atom),
-                       (double x) => failure(atom),
-                       (Atom[] atoms) => failure(atom),
-                       (Closure fun) => failure(atom)
-                       );
+        (Symbol sym) => sym,
+        (string s) => failure(atom),
+        (double x) => failure(atom),
+        (Atom[] atoms) => failure(atom),
+        (Closure fun) => failure(atom)
+    );
 }
 
 bool toBool(Atom atom)
@@ -74,12 +74,12 @@ bool toBool(Atom atom)
     }
 
     return atom.visit!(
-                       (Symbol sym) => failure(atom),
-                       (string s) => s.length > 0, // "" is falsey
-                       (double x) => x != 0, // 0 and NaN is falsey
-                       (Atom[] atoms) => failure(atom), // empty list is falsey
-                       (Closure fun) => failure(atom)
-                       );
+        (Symbol sym) => failure(atom),
+        (string s) => s.length > 0, // "" is falsey
+        (double x) => x != 0, // 0 and NaN is falsey
+        (Atom[] atoms) => failure(atom), // empty list is falsey
+        (Closure fun) => failure(atom)
+    );
 }
 
 string toString(Atom atom)
@@ -90,12 +90,12 @@ string toString(Atom atom)
     }
 
     return atom.visit!(
-                       (Symbol sym) => cast(string)sym,
-                       (string s) => s,
-                       (double x) => to!string(x),
-                       (Atom[] atoms) => atomJoiner(atoms),
-                       (Closure fun) => "#closure"
-                           );
+        (Symbol sym) => cast(string)sym,
+        (string s) => s,
+        (double x) => to!string(x),
+        (Atom[] atoms) => atomJoiner(atoms),
+        (Closure fun) => "#<Closure>"
+    );
 }
 
 Closure toClosure(Atom atom)
@@ -106,12 +106,12 @@ Closure toClosure(Atom atom)
     }
 
     return atom.visit!(
-                       (Symbol sym) => failure(atom),
-                       (string s) => failure(atom),
-                       (double x) => failure(atom),
-                       (Atom[] atoms) => failure(atom),
-                       (Closure fun) => fun
-                       );
+        (Symbol sym) => failure(atom),
+        (string s) => failure(atom),
+        (double x) => failure(atom),
+        (Atom[] atoms) => failure(atom),
+        (Closure fun) => fun
+    );
 }
 
 Atom[] toList(Atom atom)

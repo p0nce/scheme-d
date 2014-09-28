@@ -20,7 +20,7 @@ public
 
         // input should be finished there
         if (parser.peekToken().type != TokenType.endOfInput)
-            throw new SchemeException("Input not fully consumed"); // TODO return evaluation of last Atom parsed
+            throw new SchemeException(format("Parsed one expression '%s' but the input is not fully consumed", result.toString())); // TODO return evaluation of last Atom parsed
 
         return result;
     }
@@ -85,7 +85,10 @@ private
 
                         // skip whitespace
                         if (isWhite(ch))
-                            continue;
+                        {
+                            popChar();
+                            break;
+                        }
 
                         if (control)
                             throw new SchemeException("Control character found");
@@ -96,7 +99,7 @@ private
                             return Token(TokenType.leftParen, _currentLine, _currentColumn, "", double.nan);
                         }
                         else if (ch == ')')
-                        {
+                        {                            
                             popChar();
                             return Token(TokenType.rightParen, _currentLine, _currentColumn, "", double.nan);
                         }
@@ -151,25 +154,33 @@ private
                         if (!ascii)
                             throw new SchemeException(format("Non-ASCII character found: '%s'", ch));
 
-                        if (digit || alpha || punctuation)
-                        {
-                            currentString ~= ch;
-                            popChar();
-                        }
-                        else if (whitespace || ch == '(' || ch == ')')
+                        if (whitespace || ch == '(' || ch == ')')
                         {
                             // Trivia: in Scheme difference between numbers and symbols require arbitrary look-ahead, 
                             // so numbers are parsed like symbols, but are parsable as number. At least that's what 
                             // BiwaScheme seems to do.
-                            try
+
+                            _state = initial;
+
+                            assert(currentString.length > 0);
+
+                            static bool tryParseDouble(string input, out double result) 
                             {
-                                double d = to!double(currentString);
+                                import core.stdc.stdio;
+                                import std.string;
+                                return sscanf(input.toStringz, "%lf".toStringz, &result) == 1;
+                            }
+                            
+                            double d;
+                            if (tryParseDouble(currentString, d))
                                 return Token(TokenType.numberLiteral, _currentLine, _currentColumn, "", d);
-                            }
-                            catch(Exception e)
-                            {
+                            else
                                 return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
-                            }
+                        }
+                        else if (digit || alpha || punctuation)
+                        {
+                            currentString ~= ch;
+                            popChar();
                         }
                         else
                             throw new SchemeException(format("Unexpected character '%s'", ch));
@@ -241,12 +252,15 @@ private
                     throw new SchemeException("Unexpected right parenthesis");
 
                 case symbol:
+                    popToken();
                     return Atom(cast(Symbol)token.stringValue);
 
                 case stringLiteral:
+                    popToken();
                     return Atom(token.stringValue);
 
                 case numberLiteral:
+                    popToken();
                     return Atom(token.numValue);
 
                 case endOfInput:
@@ -265,7 +279,7 @@ private
                 {
                     throw new SchemeException("Expected a right parenthesis, got end of input");
                 }
-                if (token.type == TokenType.rightParen)
+                else if (token.type == TokenType.rightParen)
                 {
                     popToken();
                     return atoms;

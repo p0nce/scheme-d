@@ -32,15 +32,13 @@ class Environment
         string s = cast(string)symbol;
         Environment env = find(s);
         if (env is null)
-            throw new SchemeException(format("Variable '%d' is not defined", s));
+            throw new SchemeException(format("Variable '%s' is not defined", s));
 
         return env.values[s];
     }
 }
 
-__gshared Environment globalEnv;
-
-shared static this()
+Environment defaultEnvironment()
 {
     Atom[string] defaultValues;
 
@@ -60,5 +58,5 @@ shared static this()
 
     */
 
-    globalEnv = new Environment(defaultValues, null);
+    return new Environment(defaultValues, null);
 }
