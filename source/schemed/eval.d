@@ -67,8 +67,17 @@ Atom eval(Atom atom, Environment env)
 
                         case "define":
                             if (atoms.length != 3)
-                                throw new SchemeException("Invalid define expression, should be (define var exp)");
-                            env.values[cast(string)(toSymbol(atoms[1]))] = eval(atoms[2], env);
+                                throw new SchemeException("Invalid define expression, should be (define var exp) or (define (fun args...) body)");
+                            if (atoms[1].isSymbol)
+                                env.values[cast(string)(toSymbol(atoms[1]))] = eval(atoms[2], env);
+                            else if (atoms[1].isList)
+                            {
+                                Atom[] args = toList(atoms[1]);
+                                Symbol fun = args[0].toSymbol();
+                                env.values[cast(string)(fun)] = Atom(new Closure(env, Atom(args[1..$]), atoms[2]));
+                            }
+                            else
+                                throw new SchemeException("Invalid define expression, should be (define var exp) or (define (fun args...) body)");
                             return makeNil();
 
                         case "lambda":

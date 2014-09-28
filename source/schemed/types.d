@@ -100,32 +100,43 @@ string toString(Atom atom)
 
 Closure toClosure(Atom atom)
 {
-    Closure failure(Atom x0)
-    {
-        throw new SchemeException(format("%s is not a closure", toString(x0)));
-    }
-
-    return atom.visit!(
-        (Symbol sym) => failure(atom),
-        (string s) => failure(atom),
-        (double x) => failure(atom),
-        (Atom[] atoms) => failure(atom),
-        (Closure fun) => fun
-    );
+    Closure* closure = atom.peek!Closure();
+    if (closure !is null)
+        return *closure;
+    else
+        throw new SchemeException(format("%s is not a closure", toString(atom)));
 }
 
 Atom[] toList(Atom atom)
 {
-    Atom[] failure(Atom x0)
-    {
-        throw new SchemeException(format("%s is not a list", toString(x0)));
-    }
+    Atom[]* list = atom.peek!(Atom[])();
+    if (list !is null)
+        return *list;
+    else
+        throw new SchemeException(format("%s is not a list", toString(atom)));
+}
 
-    return atom.visit!(
-                       (Symbol sym) => failure(atom),
-                       (string s) => failure(atom),
-                       (double x) => failure(atom),
-                       (Atom[] atoms) => atoms,
-                       (Closure fun) => failure(atom)
-                       );
+bool isList(Atom atom)
+{
+    return atom.peek!(Atom[])() !is null;
+}
+
+bool isSymbol(Atom atom)
+{
+    return atom.peek!(Symbol)() !is null;
+}
+
+bool isString(Atom atom)
+{
+    return atom.peek!(string)() !is null;
+}
+
+bool isDouble(Atom atom)
+{
+    return atom.peek!(double)() !is null;
+}
+
+bool isClosure(Atom atom)
+{
+    return atom.peek!(Closure)() !is null;
 }
