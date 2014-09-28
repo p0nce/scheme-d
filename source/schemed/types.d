@@ -12,18 +12,42 @@ import schemed.environment;
 
 alias Symbol = Typedef!string;
 
+alias Builtin = Atom delegate(Atom[] args);
+
+/// A Closure is either a native Scheme function or a builtin.
 class Closure
 {
 public:
+
+    enum Type
+    {
+        regular,
+        builtin
+    }
+
+    /// Builds a regular closure
     this(Environment env, Atom params, Atom body_)
     {
+        this.type = Type.regular;
         this.env = env;
         this.params = params;
         this.body_ = body_;
+        this.builtin = null;
     }
+
+    /// Builds a builtin closure
+    this(Builtin builtin)
+    {
+        this.type = Type.builtin;
+        this.env = null;
+        this.builtin = builtin;
+    }
+
+    Type type;
     Environment env;
     Atom params;
     Atom body_;
+    Builtin builtin;
 }
 
 // An atom is either a string, a double, a symbol, a function (env, params, body) or a list of atoms
@@ -42,12 +66,18 @@ class SchemeException : Exception
     }
 }
 
-
-
 Atom makeNil()
 {
     Atom[] values = [];
     return Atom(values);
+}
+
+Atom[] symbolList(string[] syms)
+{
+    Atom[] results;
+    foreach (s ; syms)
+        results ~= Atom(cast(Symbol)s);
+    return results;
 }
 
 Symbol toSymbol(Atom atom)
@@ -114,6 +144,15 @@ Atom[] toList(Atom atom)
         return *list;
     else
         throw new SchemeException(format("%s is not a list", toString(atom)));
+}
+
+double toDouble(Atom atom)
+{
+    double* d= atom.peek!(double)();
+    if (d !is null)
+        return *d;
+    else
+        throw new SchemeException(format("%s is not a number", toString(atom)));
 }
 
 bool isList(Atom atom)

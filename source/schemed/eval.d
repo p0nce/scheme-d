@@ -52,12 +52,17 @@ Atom eval(Atom atom, Environment env)
                             return Atom(atoms[1]);
 
                         case "if":
-                            if (atoms.length != 4)
-                                throw new SchemeException("Invalid if expression, should be (if test-expr then-expr else-expr)");
+                            if (atoms.length != 3 && atoms.length != 4)
+                                throw new SchemeException("Invalid if expression, should be (if test-expr then-expr [else-expr])");
                             if (toBool(eval(atoms[1], env)))
                                 return eval(atoms[2], env);
                             else
-                                return eval(atoms[3], env);
+                            {
+                                if (atoms.length == 4)
+                                    return eval(atoms[3], env);
+                                else
+                                    return makeNil();
+                            }
 
                         case "set!":
                             if (atoms.length != 3)
@@ -116,16 +121,25 @@ Atom apply(Atom atom, Atom[] arguments)
 {
     auto closure = atom.toClosure();
 
-    // build new environment
-    Atom[] paramList = toList(closure.params);
-    Atom[string] values;
+    final switch (closure.type)
+    {
+        // this function is regular Scheme
+        case Closure.Type.regular:
+            // build new environment
+            Atom[] paramList = toList(closure.params);
+            Atom[string] values;
 
-    if (paramList.length != arguments.length)
-        throw new SchemeException(format("Expected %s arguments, got %s", paramList.length, arguments.length));
+            if (paramList.length != arguments.length)
+                throw new SchemeException(format("Expected %s arguments, got %s", paramList.length, arguments.length));
 
-    for(size_t i = 0; i < paramList.length; ++i)
-        values[cast(string)(paramList[i].toSymbol())] = arguments[i];
+            for(size_t i = 0; i < paramList.length; ++i)
+                values[cast(string)(paramList[i].toSymbol())] = arguments[i];
 
-    Environment newEnv = new Environment(values, closure.env);
-    return eval(closure.body_, newEnv);
+            Environment newEnv = new Environment(values, closure.env);
+            return eval(closure.body_, newEnv);
+
+        // this function is D code
+        case Closure.Type.builtin:
+            return closure.builtin(arguments);
+    }
 }

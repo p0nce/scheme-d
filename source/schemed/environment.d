@@ -40,7 +40,7 @@ class Environment
 
 Environment defaultEnvironment()
 {
-    Atom[string] defaultValues;
+    Atom[string] builtins;
 
     /*
     def add_globals(env):
@@ -58,5 +58,36 @@ Environment defaultEnvironment()
 
     */
 
-    return new Environment(defaultValues, null);
+    builtins["+"] = Atom(new Closure((Atom[] args)
+        {
+            double sum = 0.0;
+            foreach(arg; args)
+                sum += arg.toDouble();
+            return Atom(sum); 
+        }));
+
+    builtins["*"] = Atom(new Closure((Atom[] args)
+        {
+            double result = 1.0;
+            foreach(arg; args)
+                result *= arg.toDouble();
+            return Atom(result); 
+        }));
+
+    builtins["-"] = Atom(new Closure((Atom[] args)
+        {
+            if (args.length == 0)
+                throw new SchemeException("Too few arguments for builtin '-', need at least 1");
+            else if (args.length == 1)
+                return Atom(-args[0].toDouble());
+            else
+            {
+                double sum = args[0].toDouble();
+                for(int i = 1; i < args.length; ++i)
+                    sum -= args[i].toDouble();
+                return Atom(sum);
+            }
+        }));
+
+    return new Environment(builtins, null);
 }
