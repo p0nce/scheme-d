@@ -1,0 +1,15 @@
+{
+    "name": "scheme-d",
+    "description": "scheme-d is a simple Scheme interpreter.",
+    "homepage": "http://github.com/p0nce/scheme-d/",
+    "license": "public domain",
+
+    "targetType": "library",
+
+    "authors": [
+        "ponce"
+    ],
+
+    "sourcePaths": [ "." ],
+    "importPaths": [ "." ]
+}
