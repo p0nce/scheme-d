@@ -47,9 +47,9 @@ Atom eval(Atom atom, Environment env)
                     {
                         // Special forms
                         case "quote": 
-                            if (atoms.length < 2)
-                                throw new SchemeException("Empty quote");
-                            return Atom(atoms[1..$]);
+                            if (atoms.length != 2)
+                                throw new SchemeException("Invalid quote expression, should be (quote expr)");
+                            return Atom(atoms[1]);
 
                         case "if":
                             if (atoms.length != 4)

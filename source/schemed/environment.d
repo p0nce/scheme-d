@@ -32,7 +32,7 @@ class Environment
         string s = cast(string)symbol;
         Environment env = find(s);
         if (env is null)
-            throw new SchemeException(format("Variable '%s' is not defined", s));
+            throw new SchemeException(format("'%s' is not defined", s));
 
         return env.values[s];
     }

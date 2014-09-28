@@ -37,6 +37,7 @@ private
         symbol,
         stringLiteral,
         numberLiteral,
+        singleQuote,
         endOfInput
     }
 
@@ -93,7 +94,12 @@ private
                         if (control)
                             throw new SchemeException("Control character found");
 
-                        if (ch == '(')
+                        if (ch == '\'')
+                        {
+                            popChar();
+                            return Token(TokenType.singleQuote, _currentLine, _currentColumn, "", double.nan);
+                        }
+                        else if (ch == '(')
                         {
                             popChar();
                             return Token(TokenType.leftParen, _currentLine, _currentColumn, "", double.nan);
@@ -250,6 +256,12 @@ private
 
                 case rightParen:
                     throw new SchemeException("Unexpected right parenthesis");
+
+                // quoted expression
+                case singleQuote:
+                    popToken();
+                    auto atom = parseExpr();
+                    return Atom([ Atom(cast(Symbol)("quote")), atom ]);
 
                 case symbol:
                     popToken();

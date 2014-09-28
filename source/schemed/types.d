@@ -86,7 +86,7 @@ string toString(Atom atom)
 {
     string atomJoiner(Atom[] atoms)
     {
-        return map!toString(atoms).joiner(", " ).array.to!string;
+        return "(" ~ map!toString(atoms).joiner(" ").array.to!string ~ ")";
     }
 
     return atom.visit!(
