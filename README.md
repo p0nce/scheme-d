@@ -13,13 +13,27 @@ See UNLICENSE.txt
 
 ```d
 
+import std.stdio;
 import schemed;
 
-void main()
-{
-    string result = execute("( + 1 (- 2 4.0) )");
-}
+void main(string[] args)
+{    
+    Environment env = defaultEnvironment();
+    while(true)
+    {
+        write("> ");
+        string s = readln();
 
+        try
+        {
+            writeln(execute(s, env));
+        }
+        catch(Exception e)
+        {
+            writefln("Error: %s", e.msg);
+        }
+    }
+}
 ```
 
 ## Supported
