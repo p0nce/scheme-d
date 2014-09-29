@@ -6,6 +6,7 @@ import schemed.types;
 
 class Environment
 {
+public:
     this(Atom[string] values_, Environment outer_ = null)
     {
         values = values_;

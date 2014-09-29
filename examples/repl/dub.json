@@ -1,0 +1,13 @@
+{
+    "name": "repl",
+    "targetType": "executable",
+    "sourcePath": ".",
+    "importPaths": [ "."],
+    "dependencies": 
+    {
+        "scheme-d": { "path": "../.." },
+        "colorize": "==1.0.0"
+    }
+}
+
+
