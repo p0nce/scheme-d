@@ -37,11 +37,18 @@ public:
 
         return env.values[s];
     }
+
+    void addBuiltin(string name, Builtin b)
+    {
+        values[name] = new Closure(b);
+    }
 }
 
 Environment defaultEnvironment()
 {
     Atom[string] builtins;
+
+    auto env = new Environment(builtins, null);
 
     /*
     def add_globals(env):
@@ -49,8 +56,7 @@ Environment defaultEnvironment()
     import math, operator as op
     env.update(vars(math)) # sin, sqrt, ...
     env.update(
-    {'not':op.not_,
-    '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
+    {>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
     'equal?':op.eq, 'eq?':op.is_, 'length':len, 'cons':lambda x,y:[x]+y,
     'car':lambda x:x[0],'cdr':lambda x:x[1:], 'append':op.add,  
     'list':lambda *x:list(x), 'list?': lambda x:isa(x,list), 
@@ -59,23 +65,23 @@ Environment defaultEnvironment()
 
     */
 
-    builtins["+"] = Atom(new Closure((Atom[] args)
+    env.addBuiltin("+", (Atom[] args)
         {
             double sum = 0.0;
             foreach(arg; args)
                 sum += arg.toDouble();
             return Atom(sum); 
-        }));
+        });
 
-    builtins["*"] = Atom(new Closure((Atom[] args)
+    env.addBuiltin("*", (Atom[] args)
         {
             double result = 1.0;
             foreach(arg; args)
                 result *= arg.toDouble();
             return Atom(result); 
-        }));
+        });
 
-    builtins["-"] = Atom(new Closure((Atom[] args)
+    env.addBuiltin("-", (Atom[] args)
         {
             if (args.length == 0)
                 throw new SchemeException("Too few arguments for builtin '-', need at least 1");
@@ -88,9 +94,9 @@ Environment defaultEnvironment()
                     sum -= args[i].toDouble();
                 return Atom(sum);
             }
-        }));
+        });
 
-    builtins["/"] = Atom(new Closure((Atom[] args)
+    env.addBuiltin("/", (Atom[] args)
         {
             if (args.length == 0)
                 throw new SchemeException("Too few arguments for builtin '/', need at least 1");
@@ -103,7 +109,35 @@ Environment defaultEnvironment()
                     sum /= args[i].toDouble();
                 return Atom(sum);
             }
-        }));
+        });
 
-    return new Environment(builtins, null);
+    env.addBuiltin("not", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Too few arguments for builtin 'not', need exactly 1");
+        return Atom(!args[0].toBool());
+    });
+
+    void addComparisonBuiltin(string op)()
+    {
+        env.addBuiltin(op, (Atom[] args)
+        {
+            if (args.length < 2)
+                throw new SchemeException("Too few arguments for builtin '" ~ op ~ "', need at least 2");
+            bool b = true;
+
+            for (int i = 0; i < args.length - 1; ++i)
+            {
+                mixin("b = b & (toDouble(args[i]) " ~ op ~ "toDouble(args[i+1]));");
+            }
+            return Atom(b);
+        });
+    }
+
+    addComparisonBuiltin!">"();
+    addComparisonBuiltin!"<"();
+    addComparisonBuiltin!">="();
+    addComparisonBuiltin!"<="();
+
+    return env;
 }
