@@ -102,7 +102,7 @@ Environment defaultEnvironment()
         env.addBuiltin(name, (Atom[] args)
         {
             if (args.length != 1)
-                throw new SchemeException("Too few arguments for builtin '" ~ fun ~ "', need exactly 1");
+                throw new SchemeException("Wrong number of arguments for builtin '" ~ fun ~ "', need exactly 1");
 
             double x = args[0].toDouble();
             mixin("return Atom(" ~ fun ~ ");");
@@ -148,15 +148,35 @@ Environment defaultEnvironment()
     env.addBuiltin("not", (Atom[] args)
     {
         if (args.length != 1)
-            throw new SchemeException("Too few arguments for builtin 'not', need exactly 1");
+            throw new SchemeException("Wrong number of arguments for builtin 'not', need exactly 1");
         return Atom(!args[0].toBool());
     });
 
     env.addBuiltin("length", (Atom[] args)
     {
         if (args.length != 1)
-            throw new SchemeException("Too few arguments for builtin 'length', need exactly 1");
+            throw new SchemeException("Wrong number of arguments for builtin 'length', need exactly 1");
         return Atom(cast(double)( args[0].toList().length ));
+    });
+
+    env.addBuiltin("car", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'car', need exactly 1");
+        Atom[] list = args[0].toList();
+        if (list.length == 0)
+            throw new SchemeException("Empty list");
+        return list[0];
+    });
+
+    env.addBuiltin("cdr", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'cdr', need exactly 1");
+        Atom[] list = args[0].toList();
+        if (list.length == 0)
+            throw new SchemeException("Empty list");
+        return Atom(list[1..$]);
     });
 
     void addComparisonBuiltin(string op)(string name)
