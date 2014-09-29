@@ -105,25 +105,30 @@ Environment defaultEnvironment()
                 throw new SchemeException("Too few arguments for builtin '" ~ fun ~ "', need exactly 1");
 
             double x = args[0].toDouble();
-            mixin("double y = " ~ fun ~ "(x);");
-            return Atom(y);
+            mixin("return Atom(" ~ fun ~ ");");
         });
     }
 
-    addMathFunction!"abs"("abs");
-    addMathFunction!"exp"("exp");
-    addMathFunction!"log"("log");
-    addMathFunction!"sin"("sin");
-    addMathFunction!"cos"("cos");
-    addMathFunction!"tan"("tan");
-    addMathFunction!"asin"("asin");
-    addMathFunction!"acos"("acos");
-    addMathFunction!"atan"("atan");
+    addMathFunction!"abs(x)"("abs");
+    addMathFunction!"cast(double)exp(x)"("exp");
+    addMathFunction!"cast(double)log(x)"("log");
+    addMathFunction!"cast(double)sin(x)"("sin");
+    addMathFunction!"cast(double)cos(x)"("cos");
+    addMathFunction!"cast(double)tan(x)"("tan");
+    addMathFunction!"cast(double)asin(x)"("asin");
+    addMathFunction!"cast(double)acos(x)"("acos");
+    addMathFunction!"cast(double)atan(x)"("atan");
 
-    addMathFunction!"ceil"("ceiling");
-    addMathFunction!"floor"("floor");
-    addMathFunction!"trunc"("truncate");
-    addMathFunction!"round"("round");
+    addMathFunction!"cast(double)ceil(x)"("ceiling");
+    addMathFunction!"cast(double)floor(x)"("floor");
+    addMathFunction!"cast(double)trunc(x)"("truncate");
+    addMathFunction!"cast(double)round(x)"("round");
+
+    addMathFunction!"x == 0"("zero?");
+    addMathFunction!"x > 0"("positive?");
+    addMathFunction!"x < 0"("negative?");
+    addMathFunction!"x % 2 == 0"("odd?");
+    addMathFunction!"x % 2 != 0"("even?");
 
     env.addBuiltin("/", (Atom[] args)
         {
