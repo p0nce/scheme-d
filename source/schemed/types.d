@@ -50,8 +50,14 @@ public:
     Builtin builtin;
 }
 
-// An atom is either a string, a double, a symbol, a function (env, params, body) or a list of atoms
-alias Atom = Algebraic!(string, double, Symbol, Closure, This[]);
+// An Atom is either:
+// - a string 
+// - a double
+// - a bool
+// - a symbol
+// - a function (env, params, body) 
+// or a list of atoms
+alias Atom = Algebraic!(string, double, bool, Symbol, Closure, This[]);
 
 
 /// The one exception type thrown in this interpreter.
@@ -72,30 +78,6 @@ Atom makeNil()
     return Atom(values);
 }
 
-Atom[] symbolList(string[] syms)
-{
-    Atom[] results;
-    foreach (s ; syms)
-        results ~= Atom(cast(Symbol)s);
-    return results;
-}
-
-Symbol toSymbol(Atom atom)
-{
-    Symbol failure(Atom x0)
-    {
-        throw new SchemeException(format("%s is not a symbol", toString(x0)));
-    }
-
-    return atom.visit!(
-        (Symbol sym) => sym,
-        (string s) => failure(atom),
-        (double x) => failure(atom),
-        (Atom[] atoms) => failure(atom),
-        (Closure fun) => failure(atom)
-    );
-}
-
 bool toBool(Atom atom)
 {
     bool failure(Atom x0)
@@ -105,6 +87,7 @@ bool toBool(Atom atom)
 
     return atom.visit!(
         (Symbol sym) => failure(atom),
+        (bool b) => b,
         (string s) => s.length > 0, // "" is falsey
         (double x) => x != 0, // 0 and NaN is falsey
         (Atom[] atoms) => failure(atom), // empty list is falsey
@@ -123,6 +106,7 @@ string toString(Atom atom)
         (Symbol sym) => cast(string)sym,
         (string s) => s,
         (double x) => to!string(x),
+        (bool b) => (b ? "#t" : "#f"),
         (Atom[] atoms) => atomJoiner(atoms),
         (Closure fun) => "#<Closure>"
     );
@@ -146,6 +130,15 @@ Atom[] toList(Atom atom)
         throw new SchemeException(format("%s is not a list", toString(atom)));
 }
 
+Symbol toSymbol(Atom atom)
+{
+    Symbol* s = atom.peek!Symbol();
+    if (s !is null)
+        return *s;
+    else
+        throw new SchemeException(format("%s is not a symbol", toString(atom)));
+}
+
 double toDouble(Atom atom)
 {
     double* d= atom.peek!(double)();
@@ -162,20 +155,25 @@ bool isList(Atom atom)
 
 bool isSymbol(Atom atom)
 {
-    return atom.peek!(Symbol)() !is null;
+    return atom.peek!Symbol() !is null;
 }
 
 bool isString(Atom atom)
 {
-    return atom.peek!(string)() !is null;
+    return atom.peek!string() !is null;
 }
 
 bool isDouble(Atom atom)
 {
-    return atom.peek!(double)() !is null;
+    return atom.peek!double() !is null;
 }
 
 bool isClosure(Atom atom)
 {
-    return atom.peek!(Closure)() !is null;
+    return atom.peek!Closure() !is null;
+}
+
+bool isBool(Atom atom)
+{
+    return atom.peek!bool() !is null;
 }

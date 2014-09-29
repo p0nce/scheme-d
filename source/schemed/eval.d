@@ -31,6 +31,7 @@ Atom eval(Atom atom, Environment env)
         (Symbol sym) => env.findSymbol(sym),
         (string s) => atom,
         (double x) => atom,
+        (bool b) => atom,
         (Closure fun) => evalFailure(atom),
         (Atom[] atoms)
         {
@@ -106,6 +107,7 @@ Atom eval(Atom atom, Environment env)
                             return apply(eval(atoms[0], env), values);
                     }
                 },
+                (bool b) => evalFailure(x0),
                 (string s) => evalFailure(x0),
                 (double x) => evalFailure(x0),
                 (Atom[] atoms) => evalFailure(x0),

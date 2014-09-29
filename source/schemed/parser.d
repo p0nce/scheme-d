@@ -38,6 +38,7 @@ private
         stringLiteral,
         numberLiteral,
         singleQuote,
+        boolLiteral,
         endOfInput
     }
 
@@ -176,6 +177,13 @@ private
                                 import std.string;
                                 return sscanf(input.toStringz, "%lf".toStringz, &result) == 1;
                             }
+
+                            // Is it a bool literal?
+                            if (currentString == "#t")
+                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
+                            if (currentString == "#f")
+                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);
+                            
                             
                             double d;
                             if (tryParseDouble(currentString, d))
@@ -206,7 +214,7 @@ private
             initial,
             insideString,
             insideStringEscaped,
-            insideSymbol 
+            insideSymbol
         }
 
         void popChar()
@@ -274,6 +282,10 @@ private
                 case numberLiteral:
                     popToken();
                     return Atom(token.numValue);
+
+                case boolLiteral:
+                    popToken();
+                    return Atom(token.numValue != 0);
 
                 case endOfInput:
                     throw new SchemeException("Expected an expression, got end of input");
