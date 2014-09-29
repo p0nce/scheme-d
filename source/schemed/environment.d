@@ -118,9 +118,9 @@ Environment defaultEnvironment()
         return Atom(!args[0].toBool());
     });
 
-    void addComparisonBuiltin(string op)()
+    void addComparisonBuiltin(string op)(string name)
     {
-        env.addBuiltin(op, (Atom[] args)
+        env.addBuiltin(name, (Atom[] args)
         {
             if (args.length < 2)
                 throw new SchemeException("Too few arguments for builtin '" ~ op ~ "', need at least 2");
@@ -134,10 +134,12 @@ Environment defaultEnvironment()
         });
     }
 
-    addComparisonBuiltin!">"();
-    addComparisonBuiltin!"<"();
-    addComparisonBuiltin!">="();
-    addComparisonBuiltin!"<="();
+    addComparisonBuiltin!">"(">");
+    addComparisonBuiltin!"<"("<");
+    addComparisonBuiltin!">="(">=");
+    addComparisonBuiltin!"<="("<=");
+    addComparisonBuiltin!"=="("=");
+    addComparisonBuiltin!"!="("/=");
 
     return env;
 }
