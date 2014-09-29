@@ -78,21 +78,16 @@ Atom makeNil()
     return Atom(values);
 }
 
+
+// R5RS "Except for #f, all standard Scheme values, including #t, pairs, the empty list, symbols, numbers, strings, vectors, and procedures, count as true."
 bool toBool(Atom atom)
 {
-    bool failure(Atom x0)
-    {
-        throw new SchemeException(format("%s cannot be converted to a truth value", toString(x0)));
-    }
+    bool* b = atom.peek!bool();
 
-    return atom.visit!(
-        (Symbol sym) => failure(atom),
-        (bool b) => b,
-        (string s) => s.length > 0, // "" is falsey
-        (double x) => x != 0, // 0 and NaN is falsey
-        (Atom[] atoms) => failure(atom), // empty list is falsey
-        (Closure fun) => failure(atom)
-    );
+    if (b is null)
+        return Atom(true);
+
+    return *b;
 }
 
 string toString(Atom atom)
