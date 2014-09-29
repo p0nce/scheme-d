@@ -10,33 +10,13 @@ See UNLICENSE.txt
 
 ## Usage
 
+See: https://github.com/p0nce/scheme-d/blob/master/examples/repl/repl.d
 
-```d
+## Currently supported
 
-import std.stdio;
-import schemed;
-
-void main(string[] args)
-{    
-    Environment env = defaultEnvironment();
-    while(true)
-    {
-        write("> ");
-        string s = readln();
-
-        try
-        {
-            writeln(execute(s, env));
-        }
-        catch(Exception e)
-        {
-            writefln("Error: %s", e.msg);
-        }
-    }
-}
-```
-
-## Supported
-
-- string literals
+- special forms
+- UTF8 string literals
 - double literals
+- + - * /
+- custom builtin functions
+
