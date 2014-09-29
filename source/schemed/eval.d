@@ -99,6 +99,20 @@ Atom eval(Atom atom, Environment env)
                                 lastValue = eval(x, env);
                             return lastValue;
 
+                        // Must be a special form to enable shortcut evaluation
+                        case "and":
+                        case "or":
+                            bool isAnd = sym == "and";
+                            Atom lastValue = Atom(isAnd);
+                            foreach(arg; atoms[1..$])
+                            {
+                                lastValue = eval(arg, env);
+                                bool b = lastValue.toBool();
+                                if (b ^ isAnd)
+                                    break;
+                            }
+                            return lastValue;
+
                         default:
                             // function call
                             Atom[] values;
