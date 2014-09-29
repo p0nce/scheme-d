@@ -56,8 +56,7 @@ Environment defaultEnvironment()
     import math, operator as op
     env.update(vars(math)) # sin, sqrt, ...
     env.update(
-    {>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
-    'equal?':op.eq, 'eq?':op.is_, 'length':len, 'cons':lambda x,y:[x]+y,
+    { 'cons':lambda x,y:[x]+y,
     'car':lambda x:x[0],'cdr':lambda x:x[1:], 'append':op.add,  
     'list':lambda *x:list(x), 'list?': lambda x:isa(x,list), 
     'null?':lambda x:x==[], 'symbol?':lambda x: isa(x, Symbol)})
@@ -96,6 +95,36 @@ Environment defaultEnvironment()
             }
         });
 
+    void addMathFunction(string fun)(string name)
+    {
+        import std.math;
+
+        env.addBuiltin(name, (Atom[] args)
+        {
+            if (args.length != 1)
+                throw new SchemeException("Too few arguments for builtin '" ~ fun ~ "', need exactly 1");
+
+            double x = args[0].toDouble();
+            mixin("double y = " ~ fun ~ "(x);");
+            return Atom(y);
+        });
+    }
+
+    addMathFunction!"abs"("abs");
+    addMathFunction!"exp"("exp");
+    addMathFunction!"log"("log");
+    addMathFunction!"sin"("sin");
+    addMathFunction!"cos"("cos");
+    addMathFunction!"tan"("tan");
+    addMathFunction!"asin"("asin");
+    addMathFunction!"acos"("acos");
+    addMathFunction!"atan"("atan");
+
+    addMathFunction!"ceil"("ceiling");
+    addMathFunction!"floor"("floor");
+    addMathFunction!"trunc"("truncate");
+    addMathFunction!"round"("round");
+
     env.addBuiltin("/", (Atom[] args)
         {
             if (args.length == 0)
@@ -116,6 +145,13 @@ Environment defaultEnvironment()
         if (args.length != 1)
             throw new SchemeException("Too few arguments for builtin 'not', need exactly 1");
         return Atom(!args[0].toBool());
+    });
+
+    env.addBuiltin("length", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Too few arguments for builtin 'length', need exactly 1");
+        return Atom(cast(double)( args[0].toList().length ));
     });
 
     void addComparisonBuiltin(string op)(string name)
