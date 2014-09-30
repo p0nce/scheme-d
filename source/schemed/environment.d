@@ -50,20 +50,6 @@ Environment defaultEnvironment()
 
     auto env = new Environment(builtins, null);
 
-    /*
-    def add_globals(env):
-    "Add some Scheme standard procedures to an environment."
-    import math, operator as op
-    env.update(vars(math)) # sin, sqrt, ...
-    env.update(
-    { 'cons':lambda x,y:[x]+y,
-    'car':lambda x:x[0],'cdr':lambda x:x[1:], 'append':op.add,  
-    'list':lambda *x:list(x), 'list?': lambda x:isa(x,list), 
-    'null?':lambda x:x==[], 'symbol?':lambda x: isa(x, Symbol)})
-    return env
-
-    */
-
     env.addBuiltin("+", (Atom[] args)
         {
             double sum = 0.0;
