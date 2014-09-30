@@ -184,6 +184,21 @@ Environment defaultEnvironment()
         return Atom(args);
     });
 
+    env.addBuiltin("null?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'null?', need exactly 1");
+        return Atom(args[0].isList && (args[0].toList().length == 0) );
+    });
+
+    env.addBuiltin("list?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'list?', need exactly 1");
+        return Atom(args[0].isList);
+    });
+
+
     void addComparisonBuiltin(string op)(string name)
     {
         env.addBuiltin(name, (Atom[] args)
