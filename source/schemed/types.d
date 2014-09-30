@@ -85,7 +85,7 @@ bool toBool(Atom atom)
     bool* b = atom.peek!bool();
 
     if (b is null)
-        return Atom(true);
+        return true;
 
     return *b;
 }
