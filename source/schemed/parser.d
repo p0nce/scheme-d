@@ -18,8 +18,9 @@ public
         auto parser = Parser(code);
         Atom result = parser.parseExpr();
 
+        TokenType lastToken = parser.peekToken().type;
         // input should be finished there
-        if (parser.peekToken().type != TokenType.endOfInput)
+        if (lastToken != TokenType.endOfInput)
             throw new SchemeException(format("Parsed one expression '%s' but the input is not fully consumed", result.toString())); // TODO return evaluation of last Atom parsed
 
         return result;
@@ -95,7 +96,12 @@ private
                         if (control)
                             throw new SchemeException("Control character found");
 
-                        if (ch == '\'')
+                        if (ch == ';')
+                        {
+                            popChar();
+                            _state = insideSingleLineComment;
+                        }
+                        else if (ch == '\'')
                         {
                             popChar();
                             return Token(TokenType.singleQuote, _currentLine, _currentColumn, "", double.nan);
@@ -106,19 +112,33 @@ private
                             return Token(TokenType.leftParen, _currentLine, _currentColumn, "", double.nan);
                         }
                         else if (ch == ')')
-                        {                            
+                        {
                             popChar();
                             return Token(TokenType.rightParen, _currentLine, _currentColumn, "", double.nan);
                         }
-                        else if (digit || alpha || punctuation)
+                        else if (digit || ch == '+' || ch == '-' || ch == '.')
+                        {
+                            _state = insideNumber;
+                            currentString = "";
+                            currentString ~= ch;
+                            popChar();
+                        }
+                        else if (isIdentifierChar(ch))
                         {
                             _state = (ch == '"' ? insideString : insideSymbol);
                             currentString = "";
                             currentString ~= ch;
                             popChar();
-                        }                    
+                        }
                         else
                             assert(false); // all cases have been handled
+                        break;
+
+                    // comments are dropped by the lexer
+                    case insideSingleLineComment:
+                        popChar();
+                        if (ch == '\n')
+                            _state = initial;
                         break;
 
                     case insideString:
@@ -156,20 +176,16 @@ private
                         _state = insideString;
                         break;
 
-                    case insideSymbol:
-
-                        if (!ascii)
-                            throw new SchemeException(format("Non-ASCII character found: '%s'", ch));
-
-                        if (whitespace || ch == '(' || ch == ')')
+                    case insideNumber:
+                        
+                        if (whitespace || ch == '(' || ch == ')' || ch == ';')
                         {
-                            // Trivia: in Scheme difference between numbers and symbols require arbitrary look-ahead, 
-                            // so numbers are parsed like symbols, but are parsable as number. At least that's what 
-                            // BiwaScheme seems to do.
-
                             _state = initial;
-
                             assert(currentString.length > 0);
+
+                            // special case who are actually symbols
+                            if (currentString == "+" || currentString == "-"  || currentString == "...")
+                                return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
 
                             static bool tryParseDouble(string input, out double result) 
                             {
@@ -178,26 +194,44 @@ private
                                 return sscanf(input.toStringz, "%lf".toStringz, &result) == 1;
                             }
 
-                            // Is it a bool literal?
-                            if (currentString == "#t")
-                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
-                            if (currentString == "#f")
-                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);
-                            
-                            
                             double d;
                             if (tryParseDouble(currentString, d))
                                 return Token(TokenType.numberLiteral, _currentLine, _currentColumn, "", d);
                             else
-                                return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
+                                throw new SchemeException(format("'%s' cannot be parsed as a number", currentString));
                         }
-                        else if (digit || alpha || punctuation)
+                        else if (isDigit(ch) || ch == '+' || ch == '-' || ch == 'e' || ch == '.' || ch == '_')
                         {
                             currentString ~= ch;
                             popChar();
                         }
                         else
-                            throw new SchemeException(format("Unexpected character '%s'", ch));
+                            throw new SchemeException(format("Unexpected character '%s' in a number literal", ch));
+                        break;
+
+
+                    case insideSymbol:
+
+                        if (whitespace || ch == '(' || ch == ')' || ch == ';')
+                        {
+                            _state = initial;
+                            assert(currentString.length > 0);  
+
+                            // Is it a bool literal?
+                            if (currentString == "#t")
+                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
+                            if (currentString == "#f")
+                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);                            
+                            
+                            return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
+                        }
+                        else if (isIdentifierChar(ch))
+                        {
+                            currentString ~= ch;
+                            popChar();
+                        }
+                        else
+                            throw new SchemeException(format("Unexpected character '%s' in a symbol", ch));
                         break;
                 }
             }
@@ -209,12 +243,20 @@ private
         int _currentLine;
         int _currentColumn;
 
+        static bool isIdentifierChar(dchar ch)
+        {
+            static immutable dstring extendedAlpha = "!$%&*+-./:<=>?@^_~";
+            return isAlpha(ch) || indexOf(extendedAlpha, ch) != -1;
+        }
+
         enum State
         {
             initial,
             insideString,
             insideStringEscaped,
-            insideSymbol
+            insideSymbol,
+            insideNumber,
+            insideSingleLineComment
         }
 
         void popChar()
@@ -259,7 +301,7 @@ private
             final switch (token.type) with (TokenType)
             {
                 case leftParen:
-                    Atom[] atoms = parseList();                
+                    Atom[] atoms = parseList();
                     return Atom(atoms);
 
                 case rightParen:
@@ -313,7 +355,7 @@ private
             }
         }
 
-    private:    
+    private:
         Lexer!string _lexer;
         Token _currentToken;
     }
