@@ -198,6 +198,41 @@ Environment defaultEnvironment()
         return Atom(args[0].isList);
     });
 
+    env.addBuiltin("symbol?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'symbol?', need exactly 1");
+        return Atom(args[0].isSymbol);
+    });
+
+    env.addBuiltin("string?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'string?', need exactly 1");
+        return Atom(args[0].isString);
+    });
+
+    env.addBuiltin("procedure?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'procedure?', need exactly 1");
+        return Atom(args[0].isClosure);
+    });
+
+    env.addBuiltin("boolean?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'boolean?', need exactly 1");
+        return Atom(args[0].isBool);
+    });
+
+    env.addBuiltin("number?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeException("Wrong number of arguments for builtin 'number?', need exactly 1");
+        return Atom(args[0].isDouble);
+    });
+
 
     void addComparisonBuiltin(string op)(string name)
     {
