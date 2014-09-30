@@ -179,6 +179,11 @@ Environment defaultEnvironment()
         return Atom(list[1..$]);
     });
 
+    env.addBuiltin("list", (Atom[] args)
+    {
+        return Atom(args);
+    });
+
     void addComparisonBuiltin(string op)(string name)
     {
         env.addBuiltin(name, (Atom[] args)

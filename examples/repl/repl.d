@@ -32,6 +32,7 @@ void main(string[] args)
         {
             cwritefln("Error: %s".color(fg.light_red), e.msg);
         }
+        writeln();
     }
 }
 
