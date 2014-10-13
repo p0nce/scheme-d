@@ -21,7 +21,7 @@ public
         TokenType lastToken = parser.peekToken().type;
         // input should be finished there
         if (lastToken != TokenType.endOfInput)
-            throw new SchemeException(format("Parsed one expression '%s' but the input is not fully consumed", result.toString())); // TODO return evaluation of last Atom parsed
+            throw new SchemeParseException(format("Parsed one expression '%s' but the input is not fully consumed", result.toString())); // TODO return evaluation of last Atom parsed
 
         return result;
     }
@@ -84,7 +84,7 @@ private
                 {
                     case initial:
                         if (!ascii)
-                            throw new SchemeException(format("Non-ASCII character found: '%s'", ch));
+                            throw new SchemeParseException(format("Non-ASCII character found: '%s'", ch));
 
                         // skip whitespace
                         if (isWhite(ch))
@@ -94,7 +94,7 @@ private
                         }
 
                         if (control)
-                            throw new SchemeException("Control character found");
+                            throw new SchemeParseException("Control character found");
 
                         if (ch == ';')
                         {
@@ -172,7 +172,7 @@ private
                         else if (ch == '"')
                             currentString ~= '"';
                         else
-                            throw new SchemeException("Unknown escape sequence");
+                            throw new SchemeParseException("Unknown escape sequence");
                         _state = insideString;
                         break;
 
@@ -198,7 +198,7 @@ private
                             if (tryParseDouble(currentString, d))
                                 return Token(TokenType.numberLiteral, _currentLine, _currentColumn, "", d);
                             else
-                                throw new SchemeException(format("'%s' cannot be parsed as a number", currentString));
+                                throw new SchemeParseException(format("'%s' cannot be parsed as a number", currentString));
                         }
                         else if (isDigit(ch) || ch == '+' || ch == '-' || ch == 'e' || ch == '.' || ch == '_')
                         {
@@ -206,7 +206,7 @@ private
                             popChar();
                         }
                         else
-                            throw new SchemeException(format("Unexpected character '%s' in a number literal", ch));
+                            throw new SchemeParseException(format("Unexpected character '%s' in a number literal", ch));
                         break;
 
 
@@ -231,7 +231,7 @@ private
                             popChar();
                         }
                         else
-                            throw new SchemeException(format("Unexpected character '%s' in a symbol", ch));
+                            throw new SchemeParseException(format("Unexpected character '%s' in a symbol", ch));
                         break;
                 }
             }
@@ -305,7 +305,7 @@ private
                     return Atom(atoms);
 
                 case rightParen:
-                    throw new SchemeException("Unexpected right parenthesis");
+                    throw new SchemeParseException("Unexpected right parenthesis");
 
                 // quoted expression
                 case singleQuote:
@@ -330,7 +330,7 @@ private
                     return Atom(token.numValue != 0);
 
                 case endOfInput:
-                    throw new SchemeException("Expected an expression, got end of input");
+                    throw new SchemeParseException("Expected an expression, got end of input");
             }
         }
 
@@ -343,7 +343,7 @@ private
                 Token token = peekToken();
                 if (token.type == TokenType.endOfInput)
                 {
-                    throw new SchemeException("Expected a right parenthesis, got end of input");
+                    throw new SchemeParseException("Expected a right parenthesis, got end of input");
                 }
                 else if (token.type == TokenType.rightParen)
                 {

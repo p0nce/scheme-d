@@ -60,8 +60,32 @@ public:
 alias Atom = Algebraic!(string, double, bool, Symbol, Closure, This[]);
 
 
-/// The one exception type thrown in this interpreter.
+/// The exception type thrown in this interpreter.
 class SchemeException : Exception
+{
+    public
+    {
+        @safe pure nothrow this(string message, string file =__FILE__, size_t line = __LINE__, Throwable next = null)
+        {
+            super(message, file, line, next);
+        }
+    }
+}
+
+/// Thrown when code did not parse.
+class SchemeParseException : SchemeException
+{
+    public
+    {
+        @safe pure nothrow this(string message, string file =__FILE__, size_t line = __LINE__, Throwable next = null)
+        {
+            super(message, file, line, next);
+        }
+    }
+}
+
+/// Thrown when code did not evaluate.
+class SchemeEvalException : SchemeException
 {
     public
     {
@@ -113,7 +137,7 @@ Closure toClosure(Atom atom)
     if (closure !is null)
         return *closure;
     else
-        throw new SchemeException(format("%s is not a closure", toString(atom)));
+        throw new SchemeEvalException(format("%s is not a closure", toString(atom)));
 }
 
 Atom[] toList(Atom atom)
@@ -122,7 +146,7 @@ Atom[] toList(Atom atom)
     if (list !is null)
         return *list;
     else
-        throw new SchemeException(format("%s is not a list", toString(atom)));
+        throw new SchemeEvalException(format("%s is not a list", toString(atom)));
 }
 
 Symbol toSymbol(Atom atom)
@@ -131,7 +155,7 @@ Symbol toSymbol(Atom atom)
     if (s !is null)
         return *s;
     else
-        throw new SchemeException(format("%s is not a symbol", toString(atom)));
+        throw new SchemeEvalException(format("%s is not a symbol", toString(atom)));
 }
 
 double toDouble(Atom atom)
@@ -140,7 +164,7 @@ double toDouble(Atom atom)
     if (d !is null)
         return *d;
     else
-        throw new SchemeException(format("%s is not a number", toString(atom)));
+        throw new SchemeEvalException(format("%s is not a number", toString(atom)));
 }
 
 bool isList(Atom atom)
