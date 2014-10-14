@@ -27,7 +27,6 @@ A large part of R6RS is unsupported:
 - quasi-quoting
 - Scheme numerical tower. Only double is provided
 - char type
-- most of R6RS is unsupported currently
 - \x escape sequence in strings
 
 ## Bugs
