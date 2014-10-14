@@ -217,11 +217,13 @@ private
                     case insideBoolLiteral:
                         if (ch == 't')
                         {
+                            _state = initial;
                             popChar();
                             return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
                         }
                         else if (ch == 'f')
                         {
+                            _state = initial;
                             popChar();
                             return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);                            
                         }
