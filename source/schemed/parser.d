@@ -96,7 +96,12 @@ private
                         if (control)
                             throw new SchemeParseException("Control character found");
 
-                        if (ch == ';')
+                        if (ch == '#')
+                        {
+                            popChar();
+                            _state = insideBoolLiteral;
+                        }
+                        else if (ch == ';')
                         {
                             popChar();
                             _state = insideSingleLineComment;
@@ -131,7 +136,7 @@ private
                             popChar();
                         }
                         else
-                            assert(false); // all cases have been handled
+                            throw new SchemeParseException(format("Unexpected character '%s'", ch));
                         break;
 
                     // comments are dropped by the lexer
@@ -209,6 +214,19 @@ private
                             throw new SchemeParseException(format("Unexpected character '%s' in a number literal", ch));
                         break;
 
+                    case insideBoolLiteral:
+                        if (ch == 't')
+                        {
+                            popChar();
+                            return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
+                        }
+                        else if (ch == 'f')
+                        {
+                            popChar();
+                            return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);                            
+                        }
+                        else
+                            throw new SchemeParseException(format("Unexpected character '%s' in a bool literal", ch));
 
                     case insideSymbol:
 
@@ -216,13 +234,6 @@ private
                         {
                             _state = initial;
                             assert(currentString.length > 0);  
-
-                            // Is it a bool literal?
-                            if (currentString == "#t")
-                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 1.0);
-                            if (currentString == "#f")
-                                return Token(TokenType.boolLiteral, _currentLine, _currentColumn, "", 0.0);                            
-                            
                             return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
                         }
                         else if (isIdentifierChar(ch))
@@ -256,7 +267,8 @@ private
             insideStringEscaped,
             insideSymbol,
             insideNumber,
-            insideSingleLineComment
+            insideSingleLineComment,
+            insideBoolLiteral
         }
 
         void popChar()
