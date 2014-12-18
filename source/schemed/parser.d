@@ -157,7 +157,10 @@ private
                         if (ch == '\\')
                             _state = insideStringEscaped;
                         else if (ch == '"')
+                        {
+                             _state = initial;
                             return Token(TokenType.stringLiteral, _currentLine, _currentColumn, currentString, double.nan);
+                        }
                         else
                             currentString ~= ch;
                         break;
@@ -325,7 +328,7 @@ private
                     return Atom(atoms);
 
                 case rightParen:
-                    throw new SchemeParseException("Unexpected right parenthesis");
+                    throw new SchemeParseException("Unexpected ')'");
 
                 // quoted expression
                 case singleQuote:
@@ -363,7 +366,7 @@ private
                 Token token = peekToken();
                 if (token.type == TokenType.endOfInput)
                 {
-                    throw new SchemeParseException("Expected a right parenthesis, got end of input");
+                    throw new SchemeParseException("Expected ')', got end of input");
                 }
                 else if (token.type == TokenType.rightParen)
                 {
