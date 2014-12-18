@@ -128,9 +128,15 @@ private
                             currentString ~= ch;
                             popChar();
                         }
+                        else if (ch == '"')
+                        {
+                            _state = insideString;
+                            currentString = "";
+                            popChar();
+                        }
                         else if (isIdentifierChar(ch))
                         {
-                            _state = (ch == '"' ? insideString : insideSymbol);
+                            _state = insideSymbol;
                             currentString = "";
                             currentString ~= ch;
                             popChar();
