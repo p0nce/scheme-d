@@ -3,10 +3,9 @@
     "targetType": "executable",
     "sourcePath": ".",
     "importPaths": [ "."],
-    "dependencies": 
+    "dependencies":
     {
         "scheme-d": { "path": "../.." },
-        "colorize": "==1.0.0"
     }
 }
 

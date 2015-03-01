@@ -1,9 +1,8 @@
 import std.stdio;
 import schemed;
-import colorize;
 
 void main(string[] args)
-{    
+{
     Environment env = defaultEnvironment();
 
     bool exit = false;
@@ -16,21 +15,21 @@ void main(string[] args)
             return makeNil();
         }));
 
-    cwriteln("Welcome to scheme-d REPL, type '(exit)' to quit.".color(fg.light_white));
+    writeln("Welcome to scheme-d REPL, type '(exit)' to quit.");
 
     while(!exit)
     {
-        cwrite("> ".color(fg.light_yellow));
+        write("> ");
 
         string s = readln();
 
         try
         {
-            cwriteln(color("=> " ~ execute(s, env), fg.light_cyan));
+            writeln("=> " ~ execute(s, env));
         }
         catch(Exception e)
         {
-            cwritefln("Error: %s".color(fg.light_red), e.msg);
+            writefln("Error: %s");
         }
         writeln();
     }

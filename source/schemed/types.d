@@ -173,32 +173,32 @@ public:
         return _double;
     }
 
-    bool isList() pure const nothrow @nogc
+    bool isList() pure const nothrow
     {
         return (_type == Type.atomList);
     }
 
-    bool isSymbol() pure const nothrow @nogc
+    bool isSymbol() pure const nothrow
     {
         return (_type == Type.atomSymbol);
     }
 
-    bool isString() pure const nothrow @nogc
+    bool isString() pure const nothrow
     {
         return (_type == Type.atomString);
     }
 
-    bool isDouble() pure const nothrow @nogc
+    bool isDouble() pure const nothrow
     {
         return (_type == Type.atomDouble);
     }
 
-    bool isClosure() pure const nothrow @nogc
+    bool isClosure() pure const nothrow
     {
         return (_type == Type.atomClosure);
     }
 
-    bool isBool() pure const nothrow @nogc
+    bool isBool() pure const nothrow
     {
         return (_type == Type.atomBool);
     }
