@@ -1,6 +1,6 @@
 {
     "name": "scheme-d",
-    "description": "scheme-d is a simple Scheme interpreter.",
+    "description": "scheme-d is a tiny Scheme interpreter. Small and easy scripting for your D application.",
     "homepage": "http://github.com/p0nce/scheme-d/",
     "license": "public domain",
 
