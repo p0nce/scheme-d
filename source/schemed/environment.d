@@ -40,7 +40,7 @@ public:
 
     void addBuiltin(string name, Builtin b)
     {
-        values[name] = new Closure(b);
+        values[name] = Atom(new Closure(b));
     }
 }
 
@@ -55,7 +55,7 @@ Environment defaultEnvironment()
             double sum = 0.0;
             foreach(arg; args)
                 sum += arg.toDouble();
-            return Atom(sum); 
+            return Atom(sum);
         });
 
     env.addBuiltin("*", (Atom[] args)
@@ -63,7 +63,7 @@ Environment defaultEnvironment()
             double result = 1.0;
             foreach(arg; args)
                 result *= arg.toDouble();
-            return Atom(result); 
+            return Atom(result);
         });
 
     env.addBuiltin("-", (Atom[] args)
@@ -113,8 +113,22 @@ Environment defaultEnvironment()
     addMathFunction!"x == 0"("zero?");
     addMathFunction!"x > 0"("positive?");
     addMathFunction!"x < 0"("negative?");
+
     addMathFunction!"x % 2 == 0"("odd?");
-    addMathFunction!"x % 2 != 0"("even?");
+
+    // Work-around issue #13819
+    // https://issues.dlang.org/show_bug.cgi?id=13819
+    //addMathFunction!"x % 2 != 0"("even?");
+    env.addBuiltin("even?", (Atom[] args)
+    {
+        if (args.length != 1)
+            throw new SchemeEvalException("Wrong number of arguments for builtin 'even?', need exactly 1");
+
+        double x = args[0].toDouble();
+        bool result = (cast(int)x % 2) != 0;
+        return Atom(result);
+    });
+
 
     env.addBuiltin("/", (Atom[] args)
         {
@@ -230,7 +244,7 @@ Environment defaultEnvironment()
 
             for (int i = 0; i < args.length - 1; ++i)
             {
-                mixin("b = b & (toDouble(args[i]) " ~ op ~ "toDouble(args[i+1]));");
+                mixin("b = b & (args[i].toDouble() " ~ op ~ "args[i+1].toDouble());");
             }
             return Atom(b);
         });

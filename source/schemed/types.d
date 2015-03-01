@@ -2,10 +2,7 @@ module schemed.types;
 
 import std.typecons,
        std.conv,
-       std.string,
-       std.array,
-       std.algorithm,
-       std.variant;
+       std.string;
 
 
 import schemed.environment;
@@ -51,13 +48,161 @@ public:
 }
 
 // An Atom is either:
-// - a string 
+// - a string
 // - a double
 // - a bool
 // - a symbol
-// - a function (env, params, body) 
+// - a function (env, params, body)
 // or a list of atoms
-alias Atom = Algebraic!(string, double, bool, Symbol, Closure, This[]);
+
+struct Atom
+{
+package:
+    Type _type;
+    string _string;
+    double _double;
+    bool _bool;
+    Symbol _symbol;
+    Closure _closure;
+    Atom[] _list;
+
+public:
+    enum Type
+    {
+        atomString,
+        atomDouble,
+        atomList,
+        atomBool,
+        atomSymbol,
+        atomClosure
+    }
+
+    this(string s)
+    {
+        _type = Type.atomString;
+        _string = s;
+    }
+
+    this(double d)
+    {
+        _type = Type.atomDouble;
+        _double = d;
+    }
+
+    this(Atom[] d)
+    {
+        _type = Type.atomList;
+        _list = d.dup;
+    }
+
+    this(bool b)
+    {
+        _type = Type.atomBool;
+        _bool = b;
+    }
+
+    this(Symbol s)
+    {
+        _type = Type.atomSymbol;
+        _symbol = s;
+    }
+
+    this(Closure c)
+    {
+        _type = Type.atomClosure;
+        _closure = c;
+    }
+
+    // R5RS "Except for #f, all standard Scheme values, including #t, pairs, the empty list, symbols, numbers, strings, vectors, and procedures, count as true."
+    bool toBool()
+    {
+        if (_type == Type.atomBool)
+            return _bool;
+        else
+            return true;
+    }
+
+    string toString()
+    {
+        final switch(_type) with (Type)
+        {
+            case atomString: return _string;
+            case atomDouble: return to!string(_double);
+            case atomList:
+            {
+                string s = "(";
+                foreach(int i, ref atom; _list)
+                {
+                    if (i > 0) s ~= " ";
+                    s ~= atom.toString;
+                }
+                s ~= ")";
+                return s;
+            }
+            case atomBool: return (_bool ? "#t" : "#f");
+            case atomSymbol: return cast(string)_symbol;
+            case atomClosure: return  "#<Closure>";
+        }
+    }
+
+    Closure toClosure()
+    {
+        if (_type != Type.atomClosure)
+            throw new SchemeEvalException(format("%s is not a closure", toString()));
+        return _closure;
+    }
+
+    Atom[] toList()
+    {
+        if (_type != Type.atomList)
+            throw new SchemeEvalException(format("%s is not a list", toString()));
+        return _list;
+    }
+
+    Symbol toSymbol()
+    {
+        if (_type != Type.atomSymbol)
+            throw new SchemeEvalException(format("%s is not a symbol", toString()));
+        return _symbol;
+    }
+
+    double toDouble()
+    {
+        if (_type != Type.atomDouble)
+            throw new SchemeEvalException(format("%s is not a number", toString()));
+        return _double;
+    }
+
+    bool isList() pure const nothrow @nogc
+    {
+        return (_type == Type.atomList);
+    }
+
+    bool isSymbol() pure const nothrow @nogc
+    {
+        return (_type == Type.atomSymbol);
+    }
+
+    bool isString() pure const nothrow @nogc
+    {
+        return (_type == Type.atomString);
+    }
+
+    bool isDouble() pure const nothrow @nogc
+    {
+        return (_type == Type.atomDouble);
+    }
+
+    bool isClosure() pure const nothrow @nogc
+    {
+        return (_type == Type.atomClosure);
+    }
+
+    bool isBool() pure const nothrow @nogc
+    {
+        return (_type == Type.atomBool);
+    }
+}
 
 
 /// The exception type thrown in this interpreter.
@@ -103,96 +248,3 @@ Atom makeNil()
 }
 
 
-// R5RS "Except for #f, all standard Scheme values, including #t, pairs, the empty list, symbols, numbers, strings, vectors, and procedures, count as true."
-bool toBool(Atom atom)
-{
-    bool* b = atom.peek!bool();
-
-    if (b is null)
-        return true;
-
-    return *b;
-}
-
-string toString(Atom atom)
-{
-    string atomJoiner(Atom[] atoms)
-    {
-        return "(" ~ map!toString(atoms).joiner(" ").array.to!string ~ ")";
-    }
-
-    return atom.visit!(
-        (Symbol sym) => cast(string)sym,
-        (string s) => s,
-        (double x) => to!string(x),
-        (bool b) => (b ? "#t" : "#f"),
-        (Atom[] atoms) => atomJoiner(atoms),
-        (Closure fun) => "#<Closure>"
-    );
-}
-
-Closure toClosure(Atom atom)
-{
-    Closure* closure = atom.peek!Closure();
-    if (closure !is null)
-        return *closure;
-    else
-        throw new SchemeEvalException(format("%s is not a closure", toString(atom)));
-}
-
-Atom[] toList(Atom atom)
-{
-    Atom[]* list = atom.peek!(Atom[])();
-    if (list !is null)
-        return *list;
-    else
-        throw new SchemeEvalException(format("%s is not a list", toString(atom)));
-}
-
-Symbol toSymbol(Atom atom)
-{
-    Symbol* s = atom.peek!Symbol();
-    if (s !is null)
-        return *s;
-    else
-        throw new SchemeEvalException(format("%s is not a symbol", toString(atom)));
-}
-
-double toDouble(Atom atom)
-{
-    double* d= atom.peek!(double)();
-    if (d !is null)
-        return *d;
-    else
-        throw new SchemeEvalException(format("%s is not a number", toString(atom)));
-}
-
-bool isList(Atom atom)
-{
-    return atom.peek!(Atom[])() !is null;
-}
-
-bool isSymbol(Atom atom)
-{
-    return atom.peek!Symbol() !is null;
-}
-
-bool isString(Atom atom)
-{
-    return atom.peek!string() !is null;
-}
-
-bool isDouble(Atom atom)
-{
-    return atom.peek!double() !is null;
-}
-
-bool isClosure(Atom atom)
-{
-    return atom.peek!Closure() !is null;
-}
-
-bool isBool(Atom atom)
-{
-    return atom.peek!bool() !is null;
-}

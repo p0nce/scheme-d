@@ -3,7 +3,6 @@
 module schemed.eval;
 
 import std.string;
-import std.variant;
 
 import schemed.types;
 import schemed.environment;
@@ -15,7 +14,7 @@ import schemed.parser;
 string execute(string code, Environment env)
 {
     Atom result = eval(parseExpression(code), env);
-    return toString(result);
+    return result.toString();
 }
 
 /// Evaluates an expression.
@@ -24,38 +23,54 @@ Atom eval(Atom atom, Environment env)
 {
     Atom evalFailure(Atom x0)
     {
-        throw new SchemeEvalException(format("%s is not a function", toString(x0)));
+        throw new SchemeEvalException(format("%s is not a function", x0.toString()));
     }
 
-    Atom result = atom.visit!(
-        (Symbol sym) => env.findSymbol(sym),
-        (string s) => atom,
-        (double x) => atom,
-        (bool b) => atom,
-        (Closure fun) => evalFailure(atom),
-        (Atom[] atoms)
+    final switch(atom._type) with (Atom.Type)
+    {
+        case atomSymbol:
+            return env.findSymbol(atom._symbol);
+        case atomString:
+        case atomDouble:
+        case atomBool:
+            return atom;
+        case atomClosure:
+            return evalFailure(atom);
+
+        case atomList:
         {
             // empty list evaluate to itself
-            if (atoms.length == 0)
+            if (atom._list.length == 0)
                 return atom;
+
+            Atom[] atoms = atom._list;
 
             Atom x0 = atoms[0];
 
-            return x0.visit!(
-                (Symbol sym)
+            final switch(x0._type) with (Atom.Type)
+            {
+                case atomBool: return evalFailure(atom);
+                case atomDouble: return evalFailure(atom);
+                case atomString: return evalFailure(atom);
+                case atomList: return evalFailure(atom);
+                case atomClosure: return evalFailure(atom);
+
+                case atomSymbol:
                 {
-                    switch(cast(string)sym)
+                    string sym = cast(string)(x0._symbol);
+
+                    switch(sym)
                     {
                         // Special forms
-                        case "quote": 
+                        case "quote":
                             if (atoms.length != 2)
                                 throw new SchemeEvalException("Invalid quote expression, should be (quote expr)");
-                            return Atom(atoms[1]);
+                            return atoms[1];
 
                         case "if":
                             if (atoms.length != 3 && atoms.length != 4)
                                 throw new SchemeEvalException("Invalid if expression, should be (if test-expr then-expr [else-expr])");
-                            if (toBool(eval(atoms[1], env)))
+                            if (eval(atoms[1], env).toBool)
                                 return eval(atoms[2], env);
                             else
                             {
@@ -75,10 +90,10 @@ Atom eval(Atom atom, Environment env)
                             if (atoms.length != 3)
                                 throw new SchemeEvalException("Invalid define expression, should be (define var exp) or (define (fun args...) body)");
                             if (atoms[1].isSymbol)
-                                env.values[cast(string)(toSymbol(atoms[1]))] = eval(atoms[2], env);
+                                env.values[cast(string)(atoms[1].toSymbol)] = eval(atoms[2], env);
                             else if (atoms[1].isList)
                             {
-                                Atom[] args = toList(atoms[1]);
+                                Atom[] args = atoms[1].toList;
                                 Symbol fun = args[0].toSymbol();
                                 env.values[cast(string)(fun)] = Atom(new Closure(env, Atom(args[1..$]), atoms[2]));
                             }
@@ -120,16 +135,10 @@ Atom eval(Atom atom, Environment env)
                                 values ~= eval(x, env);
                             return apply(eval(atoms[0], env), values);
                     }
-                },
-                (bool b) => evalFailure(x0),
-                (string s) => evalFailure(x0),
-                (double x) => evalFailure(x0),
-                (Atom[] atoms) => evalFailure(x0),
-                (Closure fun) => evalFailure(x0)
-                );
+                }
+            }
         }
-    );   
-    return result;
+    }
 }
 
 
@@ -142,7 +151,7 @@ Atom apply(Atom atom, Atom[] arguments)
         // this function is regular Scheme
         case Closure.Type.regular:
             // build new environment
-            Atom[] paramList = toList(closure.params);
+            Atom[] paramList = closure.params.toList();
             Atom[string] values;
 
             if (paramList.length != arguments.length)
