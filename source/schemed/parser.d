@@ -26,6 +26,21 @@ public
         return result;
     }
 
+    /// Parse a sequence of expressions.
+    Atom[] parseExpressions(string source)
+    {
+        import std.array: appender;
+
+        auto parser = Parser(source);
+        auto result = appender!(Atom[]);
+
+        do
+            result.put(parser.parseExpr);
+        while(parser.peekToken.type != TokenType.endOfInput);
+
+        return result.data;
+    }
+
 }
 
 private
