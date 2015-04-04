@@ -17,6 +17,16 @@ string execute(string code, Environment env)
     return result.toString();
 }
 
+/// Execute a string of code which may have several top-level atoms.
+/// Returns: Text representation of the result expressions.
+string executeScript(string code, Environment env)
+{
+    import std.conv: to;
+
+    Atom[] result = eval(parseExpressions(code), env);
+    return result.to!string;
+}
+
 /// Evaluates an expression.
 /// Returns: Result of evaluation.
 Atom eval(Atom atom, Environment env)
@@ -141,6 +151,17 @@ Atom eval(Atom atom, Environment env)
     }
 }
 
+/// Evaluates several expressions.
+/// Returns: Result of evaluation of each atom.
+Atom[] eval(Atom[] atoms, Environment env)
+{
+    import std.array: appender;
+
+    auto result = appender!(Atom[]);
+    foreach(atom; atoms)
+        result.put(eval(atom, env));
+    return result.data;
+}
 
 Atom apply(Atom atom, Atom[] arguments)
 {
