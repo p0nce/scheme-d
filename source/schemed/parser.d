@@ -262,7 +262,7 @@ private
                             assert(currentString.length > 0);  
                             return Token(TokenType.symbol, _currentLine, _currentColumn, currentString, double.nan);
                         }
-                        else if (isIdentifierChar(ch))
+                        else if (isIdentifierChar(ch) || digit)
                         {
                             currentString ~= ch;
                             popChar();
