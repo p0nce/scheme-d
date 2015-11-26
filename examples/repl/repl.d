@@ -29,7 +29,7 @@ void main(string[] args)
         }
         catch(Exception e)
         {
-            writefln("Error: %s");
+            writefln("Error: %s", e.msg);
         }
         writeln();
     }
